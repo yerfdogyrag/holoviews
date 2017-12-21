@@ -10,13 +10,11 @@ __version__ = param.Version(release=(1,9,2), fpath=__file__,
 
 from .core import archive, config                        # noqa (API import)
 from .core.dimension import OrderedDict, Dimension       # noqa (API import)
-from .core.boundingregion import BoundingBox             # noqa (API import)
 from .core.options import (Options, Store, Cycle,        # noqa (API import)
-                           Palette, StoreOptions)
-from .core.layout import *                               # noqa (API import)
-from .core.element import *                              # noqa (API import)
-from .core.overlay import *                              # noqa (API import)
-from .core.tree import *                                 # noqa (API import)
+                           Palette)
+from .core.layout import Layout, NdLayout, AdjointLayout # noqa (API import)
+from .core.element import Collator                       # noqa (API import)
+from .core.overlay import Overlay, NdOverlay             # noqa (API import)
 from .core.spaces import (HoloMap, Callable, DynamicMap, # noqa (API import)
                           GridSpace, GridMatrix)
 
