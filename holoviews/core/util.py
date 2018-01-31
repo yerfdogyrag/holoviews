@@ -1595,3 +1595,35 @@ def compute_edges(edges):
     midpoints = (edges[:-1] + edges[1:])/2.0
     boundaries = (2*edges[0] - midpoints[0], 2*edges[-1] - midpoints[-1])
     return np.concatenate([boundaries[:1], midpoints, boundaries[-1:]])
+
+
+def closest_match(match, specs, depth=0):
+    """
+    Recursively iterates over type, group, label and overlay key,
+    finding the closest matching spec.
+    """
+    new_specs = []
+    match_lengths = []
+    for i, spec in specs:
+        if spec[0] == match[0]:
+            new_specs.append((i, spec[1:]))
+        else:
+            if is_number(match[0]) and is_number(spec[0]):
+                match_length = -abs(match[0]-spec[0])
+            elif all(isinstance(s[0], basestring) for s in [spec, match]):
+                match_length = max(i for i in range(len(match[0]))
+                                   if match[0].startswith(spec[0][:i]))
+            else:
+                match_length = 0
+            match_lengths.append((i, match_length, spec[0]))
+
+    if len(new_specs) == 1:
+        return new_specs[0][0]
+    elif new_specs:
+        depth = depth+1
+        return closest_match(match[1:], new_specs, depth)
+    else:
+        if depth == 0 or not match_lengths:
+            return None
+        else:
+            return sorted(match_lengths, key=lambda x: -x[1])[0][0]

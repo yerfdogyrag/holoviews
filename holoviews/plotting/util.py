@@ -10,7 +10,7 @@ from ..core import (HoloMap, DynamicMap, CompositeOverlay, Layout,
 from ..core.options import Cycle
 from ..core.spaces import get_nested_streams
 from ..core.util import (match_spec, is_number, wrap_tuple, basestring,
-                         get_overlay_spec, unique_iterator)
+                         get_overlay_spec, unique_iterator, closest_match)
 from ..streams import LinkedStream
 
 def displayable(obj):
@@ -406,38 +406,6 @@ def dynamic_update(plot, subplot, key, overlay, items):
     specs = [(i, get_overlay_spec(overlay, wrap_tuple(k), el))
              for i, (k, el) in enumerate(items)]
     return closest_match(match_spec, specs)
-
-
-def closest_match(match, specs, depth=0):
-    """
-    Recursively iterates over type, group, label and overlay key,
-    finding the closest matching spec.
-    """
-    new_specs = []
-    match_lengths = []
-    for i, spec in specs:
-        if spec[0] == match[0]:
-            new_specs.append((i, spec[1:]))
-        else:
-            if is_number(match[0]) and is_number(spec[0]):
-                match_length = -abs(match[0]-spec[0])
-            elif all(isinstance(s[0], basestring) for s in [spec, match]):
-                match_length = max(i for i in range(len(match[0]))
-                                   if match[0].startswith(spec[0][:i]))
-            else:
-                match_length = 0
-            match_lengths.append((i, match_length, spec[0]))
-
-    if len(new_specs) == 1:
-        return new_specs[0][0]
-    elif new_specs:
-        depth = depth+1
-        return closest_match(match[1:], new_specs, depth)
-    else:
-        if depth == 0 or not match_lengths:
-            return None
-        else:
-            return sorted(match_lengths, key=lambda x: -x[1])[0][0]
 
 
 def map_colors(arr, crange, cmap, hex=True):
