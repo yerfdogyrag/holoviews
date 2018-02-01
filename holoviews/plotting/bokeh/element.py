@@ -753,7 +753,6 @@ class ElementPlot(BokehPlot, GenericElementPlot):
         self.current_key = key
         style_element = element.last if self.batched else element
         ranges = util.match_spec(style_element, ranges)
-
         # Initialize plot, source and glyph
         if plot is None:
             plot = self._init_plot(key, style_element, ranges=ranges, plots=plots)
@@ -1093,7 +1092,10 @@ class ColorbarPlot(ElementPlot):
 
         ncolors = None if factors is None else len(factors)
         if dim:
-            low, high = ranges.get(dim.name, element.range(dim.name))
+            if dim.name in ranges:
+                low, high = ranges[dim.name]['combined']
+            else:
+                low, high = element.range(dim.name)
         else:
             low, high = None, None
 

@@ -174,7 +174,7 @@ class VectorFieldPlot(ColorbarPlot):
         base_dist = get_min_distance(element)
         if mag_dim:
             magnitudes = element.dimension_values(mag_dim)
-            _, max_magnitude = ranges[mag_dim.name]
+            _, max_magnitude = ranges[mag_dim.name]['combined']
             if self.normalize_lengths and max_magnitude != 0:
                 magnitudes = magnitudes / max_magnitude
             if self.rescale_lengths:
@@ -502,11 +502,16 @@ class AreaPlot(SpreadPlot):
     def get_extents(self, element, ranges):
         vdims = element.vdims
         vdim = vdims[0].name
+        new_range = {}
         if len(vdims) > 1:
-            ranges[vdim] = max_range([ranges[vd.name] for vd in vdims])
+            for r in ranges[vdim]:
+                new_range[r] = max_range([ranges[vd.name][r] for vd in vdims])
         else:
-            vdim = vdims[0].name
-            ranges[vdim] = (np.nanmin([0, ranges[vdim][0]]), ranges[vdim][1])
+            vranges = ranges[vdim]
+            for r in vranges:
+                vrange = vranges[r]
+                new_range[r] = (np.nanmin([0, vrange[0]]), vrange[1])
+        ranges[vdim] = new_range
         return super(AreaPlot, self).get_extents(element, ranges)
 
 
@@ -670,7 +675,7 @@ class BarPlot(ColorbarPlot, LegendPlot):
             element = Bars(overlay.table(), kdims=element.kdims+overlay.kdims,
                            vdims=element.vdims)
             for kd in overlay.kdims:
-                ranges[kd.name] = overlay.range(kd)
+                ranges[kd.name]['combined'] = overlay.range(kd)
 
         stacked = element.get_dimension(self.stack_index)
         extents = super(BarPlot, self).get_extents(element, ranges)
@@ -684,7 +689,7 @@ class BarPlot(ColorbarPlot, LegendPlot):
             neg_range = ds.select(**{ydim.name: (None, 0)}).aggregate(xdim, function=np.sum).range(ydim)
             y0, y1 = max_range([pos_range, neg_range])
         else:
-            y0, y1 = ranges[ydim.name]
+            y0, y1 = ranges[ydim.name]['combined']
 
         # Set y-baseline
         if y0 < 0:
@@ -827,7 +832,7 @@ class BarPlot(ColorbarPlot, LegendPlot):
                                       container_type=OrderedDict,
                                       datatype=['dataframe', 'dictionary'])
 
-        y0, y1 = ranges.get(ydim.name, (None, None))
+        y0, y1 = ranges.get(ydim.name, {'combined': (None, None)})['combined']
         if self.logy:
             bottom = (ydim.range[0] or (10**(np.log10(y1)-2)) if y1 else 0.01)
         else:
@@ -968,7 +973,7 @@ class BoxWhiskerPlot(CompositeElementPlot, ColorbarPlot, LegendPlot):
         Extents are set to '' and None because x-axis is categorical and
         y-axis auto-ranges.
         """
-        yrange = ranges.get(element.vdims[0].name, (np.NaN, np.NaN))
+        yrange = ranges.get(element.vdims[0].name, {'combined': (np.NaN, np.NaN)})['combined']
         return ('', yrange[0], '', yrange[1])
 
     def _get_axis_labels(self, *args, **kwargs):

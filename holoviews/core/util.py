@@ -703,6 +703,20 @@ def find_range(values, soft_range=[]):
             return (None, None)
 
 
+def is_finite(value):
+    """
+    Safe check whether a value is finite, only None and NaN values are
+    considered non-finite and allows checking all types not restricted
+    to numeric types.
+    """
+    if value is None:
+        return False
+    try:
+        return np.isfinite(value)
+    except:
+        return True
+
+
 def max_range(ranges):
     """
     Computes the maximal lower and upper bounds from a list bounds.
@@ -710,27 +724,33 @@ def max_range(ranges):
     try:
         with warnings.catch_warnings():
             warnings.filterwarnings('ignore', r'All-NaN (slice|axis) encountered')
-            values = [r for r in ranges for v in r if v is not None]
-            if pd and all(isinstance(v, pd.Timestamp) for r in values for v in r):
-                values = [(v1.to_datetime64(), v2.to_datetime64()) for v1, v2 in values]
-            arr = np.array(values)
-            if arr.dtype.kind in 'OSU':
-                arr = np.sort([v for v in arr.flat if not is_nan(v)])
+            values = [v for r in ranges for v in r if is_finite(v)]
+            if pd and all(isinstance(v, pd.Timestamp) for v in values):
+                values = [v.to_datetime64() for v in values]
+            values = np.array(values)
+            if not len(values):
+                return (np.NaN, np.NaN)
+            elif values.dtype.kind in 'OSU':
+                arr = np.sort(values)
                 return arr[0], arr[-1]
-            if arr.dtype.kind in 'M':
-                return arr[:, 0].min(), arr[:, 1].max()
-            return (np.nanmin(arr[:, 0]), np.nanmax(arr[:, 1]))
+            elif values.dtype.kind in 'M':
+                return values.min(), values.max()
+            return (np.nanmin(values), np.nanmax(values))
     except:
         return (np.NaN, np.NaN)
 
 
-def dimension_range(lower, upper, dimension):
+def dimension_range(lower, upper, hard_range, soft_range, padding=0):
     """
     Computes the range along a dimension by combining the data range
     with the Dimension soft_range and range.
     """
-    lower, upper = max_range([(lower, upper), dimension.soft_range])
-    dmin, dmax = dimension.range
+    if is_number(lower) and is_number(upper) and padding != 0:
+        pad = (upper - lower)*padding
+        lower -= pad
+        upper += pad
+    lower, upper = max_range([(lower, upper), soft_range])
+    dmin, dmax = hard_range
     lower = lower if dmin is None or not np.isfinite(dmin) else dmin
     upper = upper if dmax is None or not np.isfinite(dmax) else dmax
     return lower, upper
@@ -928,6 +948,7 @@ def dimension_sort(odict, kdims, vdims, key_index):
 # Copied from param should make param version public
 def is_number(obj):
     if isinstance(obj, numbers.Number): return True
+    elif isinstance(obj, (np.str_, np.unicode_)): return False
     # The extra check is for classes that behave like numbers, such as those
     # found in numpy, gmpy, etc.
     elif (hasattr(obj, '__int__') and hasattr(obj, '__add__')): return True

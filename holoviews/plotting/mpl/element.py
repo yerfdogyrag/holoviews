@@ -656,7 +656,10 @@ class ColorbarPlot(ElementPlot):
             if not isinstance(cs, np.ndarray):
                 cs = np.array(cs)
             if len(cs) and cs.dtype.kind in 'if':
-                clim = ranges[vdim.name] if vdim.name in ranges else element.range(vdim)
+                if vdim.name in ranges:
+                    clim = ranges[vdim.name]['combined']
+                else:
+                    clim = element.range(vdim)
                 if self.logz:
                     # Lower clim must be >0 when logz=True
                     # Choose the maximum between the lowest non-zero value
