@@ -14,7 +14,7 @@ from ...element import (Curve, Points, Scatter, Image, Raster, Path,
                         ErrorBars, Text, HLine, VLine, Spline, Spikes,
                         Table, ItemTable, Area, HSV, QuadMesh, VectorField,
                         Graph, Nodes, EdgePaths, Distribution, Bivariate,
-                        TriMesh, Violin, Chord)
+                        TriMesh, Violin, Chord, Labels)
 from ...core.options import Options, Cycle, Palette
 from ...core.util import VersionError
 
@@ -28,7 +28,8 @@ try:
 except:
     DFrame = None
 
-from .annotation import TextPlot, LineAnnotationPlot, SplinePlot, ArrowPlot
+from .annotation import (LabelsPlot, TextPlot, LineAnnotationPlot,
+                         SplinePlot, ArrowPlot)
 from .callbacks import Callback # noqa (API import)
 from .element import OverlayPlot, ElementPlot
 from .chart import (PointPlot, CurvePlot, SpreadPlot, ErrorPlot, HistogramPlot,
@@ -90,6 +91,7 @@ associations = {Overlay: OverlayPlot,
                 HLine: LineAnnotationPlot,
                 VLine: LineAnnotationPlot,
                 Text: TextPlot,
+                Labels: LabelsPlot,
                 Spline: SplinePlot,
                 Arrow: ArrowPlot,
 

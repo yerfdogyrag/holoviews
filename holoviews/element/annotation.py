@@ -5,6 +5,8 @@ import param
 from ..core.util import datetime_types, basestring
 from ..core import Dimension, Element2D
 
+from .chart import Points
+
 
 class Annotation(Element2D):
     """
@@ -251,3 +253,16 @@ class Text(Annotation):
         super(Text, self).__init__(info, x=x, y=y, text=text,
                                    fontsize=fontsize, rotation=rotation,
                                    halign=halign, valign=valign, **params)
+
+
+class Labels(Points):
+    """
+    Labels represents a collection of text labels associated with 2D
+    coordinates. Unlike other Annotation types it is vectorized to
+    draw labels from a columnar dataset.
+    """
+
+    group = param.String(default='Labels', constant=True)
+
+    vdims = param.List([Dimension('Label')], bounds=(1, 1), doc="""
+        Defines the value dimension corresponding to the label text.""")
