@@ -188,7 +188,7 @@ options.Image = Options('style', cmap=dflt_cmap)
 options.GridImage = Options('style', cmap=dflt_cmap)
 options.Raster = Options('style', cmap=dflt_cmap)
 options.QuadMesh = Options('style', cmap=dflt_cmap, line_alpha=0)
-options.HeatMap = Options('style', cmap='RdYlBu_r',
+options.HeatMap = Options('style', cmap='RdYlBu_r', line_alpha=0,
                           xmarks_line_color="#FFFFFF", xmarks_line_width=3,
                           ymarks_line_color="#FFFFFF", ymarks_line_width=3,
                           annular_line_color=None)
